@@ -29,11 +29,28 @@ export default defineContentScript({
         btn.className = "spotify-btn btn btn-link btn-lg";
         btn.textContent = "S";
 
-        btn.addEventListener("click", () => {
+        btn.addEventListener("click", async () => {
+          btn.textContent = "...";
           const cols = row.children;
           const artist = (cols[1].textContent || "").trim();
           const song = (cols[2].textContent || "").trim();
-          console.log("Spotify clicked for:", artist, "-", song);
+          try {
+            const response = await browser.runtime.sendMessage({
+              type: "addToSpotify",
+              data: {
+                artist,
+                song,
+              },
+            });
+            console.log("response: ", response);
+            if (response?.ok) {
+              btn.textContent = "✓";
+            } else {
+              btn.textContent = "✗";
+            }
+          } catch (err) {
+            btn.textContent = "✗";
+          }
         });
 
         buttonContainer.insertBefore(btn, buttonContainer.firstChild);
