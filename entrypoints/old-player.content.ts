@@ -30,6 +30,7 @@ export default defineContentScript({
         const btn = document.createElement("button");
         btn.type = "button";
         btn.className = "icon";
+        btn.title = "Add to Spotify";
 
         const btnIcon = document.createElement("img");
         btnIcon.width = 18;
@@ -42,6 +43,7 @@ export default defineContentScript({
         btn.addEventListener("click", async () => {
           btnIcon.src = getIcon("loading");
           btnIcon.classList.add("animate-spin");
+          btn.title = "Loading";
 
           const cols = row.children;
           const artist = (cols[1].textContent || "").trim();
@@ -55,22 +57,25 @@ export default defineContentScript({
                 song,
               },
             });
-            console.log("response: ", response);
             if (response?.ok) {
               btnIcon.src = getIcon("checkmark");
               btnIcon.classList.remove("animate-spin");
+              btn.title = "Added track to library";
             } else {
               btnIcon.src = getIcon("X");
               btnIcon.classList.remove("animate-spin");
+              btn.title = `Error: ${response?.error || "Failed to add track"}`;
             }
           } catch (err) {
             btnIcon.src = getIcon("X");
             btnIcon.classList.remove("animate-spin");
+            btn.title = `Error: ${err?.toString() || "Unknown error"}`;
           }
 
           setTimeout(() => {
             btnIcon.src = getIcon("spotify");
-          }, 5000); // reset icon after 5s
+            btn.title = "Add to Spotify";
+          }, 5000);
         });
 
         buttonContainer.insertBefore(btn, buttonContainer.firstChild);
