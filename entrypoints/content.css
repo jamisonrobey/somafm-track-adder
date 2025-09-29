@@ -1,0 +1,24 @@
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+/* i am just an icon living head ah*/
+.icon {
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  vertical-align: middle;
+  background: none !important;
+  border: none !important;
+  padding: 0 !important;
+  cursor: pointer;
+}

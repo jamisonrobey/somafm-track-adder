@@ -1,3 +1,5 @@
+import "./content.css";
+
 export default defineContentScript({
   matches: ["*://*.somafm.com/player/*"],
   main(ctx) {
@@ -21,19 +23,30 @@ export default defineContentScript({
       for (const row of listBody.children) {
         const buttonContainer =
           row.querySelector<HTMLDivElement>(".pull-right");
+
         if (!buttonContainer) continue;
         if (buttonContainer.querySelector(".spotify-btn")) continue;
 
         const btn = document.createElement("button");
         btn.type = "button";
-        btn.className = "spotify-btn btn btn-link btn-lg";
-        btn.textContent = "S";
+        btn.className = "icon";
+
+        const btnIcon = document.createElement("img");
+        btnIcon.width = 18;
+        btnIcon.height = 18;
+
+        btnIcon.src = getIcon("spotify");
+
+        btn.appendChild(btnIcon);
 
         btn.addEventListener("click", async () => {
-          btn.textContent = "...";
+          btnIcon.src = getIcon("loading");
+          btnIcon.classList.add("animate-spin");
+
           const cols = row.children;
           const artist = (cols[1].textContent || "").trim();
           const song = (cols[2].textContent || "").trim();
+
           try {
             const response = await browser.runtime.sendMessage({
               type: "addToSpotify",
@@ -44,13 +57,20 @@ export default defineContentScript({
             });
             console.log("response: ", response);
             if (response?.ok) {
-              btn.textContent = "✓";
+              btnIcon.src = getIcon("checkmark");
+              btnIcon.classList.remove("animate-spin");
             } else {
-              btn.textContent = "✗";
+              btnIcon.src = getIcon("X");
+              btnIcon.classList.remove("animate-spin");
             }
           } catch (err) {
-            btn.textContent = "✗";
+            btnIcon.src = getIcon("X");
+            btnIcon.classList.remove("animate-spin");
           }
+
+          setTimeout(() => {
+            btnIcon.src = getIcon("spotify");
+          }, 5000); // reset icon after 5s
         });
 
         buttonContainer.insertBefore(btn, buttonContainer.firstChild);
@@ -75,3 +95,17 @@ export default defineContentScript({
     if (listBody) hookListBody(listBody);
   },
 });
+
+// https://wxt.dev/guide/essentials/assets.html#inside-content-scripts
+const getIcon = (type: "spotify" | "loading" | "checkmark" | "X") => {
+  switch (type) {
+    case "spotify":
+      return browser.runtime.getURL("/spotify-icon.svg");
+    case "loading":
+      return browser.runtime.getURL("/loading-icon.svg");
+    case "checkmark":
+      return browser.runtime.getURL("/checkmark.svg");
+    case "X":
+      return browser.runtime.getURL("/X.svg");
+  }
+};
