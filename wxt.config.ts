@@ -15,5 +15,10 @@ export default defineConfig({
         ],
       },
     ],
+    browser_specific_settings: {
+      gecko: {
+        id: "soma-fm@dev.com",
+      },
+    },
   },
 });
