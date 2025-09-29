@@ -33,12 +33,26 @@ export const api = {
         );
 
         if (response.data?.tracks?.items?.length > 0) {
-          const trackId = response.data.tracks.items[0].id;
-          return trackId;
+          const track = response.data.tracks.items[0];
+
+          if (api.isArtistMatching(track, artist)) {
+            return track.id;
+          }
         }
       } catch (error) {}
     }
     return null;
+  },
+
+  isArtistMatching: (
+    track: { artists: { name: string }[] },
+    searchArtist: string
+  ) => {
+    const normalize = (str: string) =>
+      str.toLowerCase().replace(/[^\w\s]/g, "");
+    const resultArtists = normalize(track.artists.map((a) => a.name).join(" "));
+    const artist = normalize(searchArtist);
+    return resultArtists.includes(artist) || artist.includes(resultArtists);
   },
 
   saveTrackToLibrary: async (token: string, trackId: string) => {
