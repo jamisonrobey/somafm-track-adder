@@ -6,41 +6,33 @@ export const api = {
     artist: string,
     originalSong: string
   ) => {
-    const simplifiedSong = originalSong.replace(/\s*\(.*?\)/g, "").trim(); // simple song name w/ no parenthesis (e.g. '(radio mix)') for fallback search
+    const searchParams = new URLSearchParams({
+      q: `track:"${originalSong}" artist:"${artist}"`,
+      type: "track",
+    });
 
-    const queries = [
-      `track:${originalSong} artist:${artist}`,
-      `track:${simplifiedSong} artist:${artist}`,
-      `${simplifiedSong} ${artist}`,
-    ];
+    try {
+      const response = await axios.get(
+        `https://api.spotify.com/v1/search?${searchParams.toString()}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
 
-    for (const query of queries) {
-      const searchParams = new URLSearchParams({
-        q: query,
-        type: "track",
-        limit: "1",
-      });
-
-      try {
-        const response = await axios.get(
-          `https://api.spotify.com/v1/search?${searchParams.toString()}`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              "Content-Type": "application/json",
-            },
-          }
-        );
-
-        if (response.data?.tracks?.items?.length > 0) {
-          const track = response.data.tracks.items[0];
-
+      if (response.data?.tracks?.items?.length > 0) {
+        for (const track of response.data.tracks.items) {
           if (api.isArtistMatching(track, artist)) {
             return track.id;
           }
         }
-      } catch (error) {}
+      }
+    } catch (error) {
+      console.error(error);
     }
+
     return null;
   },
 
@@ -48,11 +40,12 @@ export const api = {
     track: { artists: { name: string }[] },
     searchArtist: string
   ) => {
-    const normalize = (str: string) =>
-      str.toLowerCase().replace(/[^\w\s]/g, "");
-    const resultArtists = normalize(track.artists.map((a) => a.name).join(" "));
-    const artist = normalize(searchArtist);
-    return resultArtists.includes(artist) || artist.includes(resultArtists);
+    const normalize = (str: string) => str.toLowerCase().trim();
+    const searchArtistNorm = normalize(searchArtist);
+
+    return track.artists.some(
+      (artist) => normalize(artist.name) === searchArtistNorm
+    );
   },
 
   saveTrackToLibrary: async (token: string, trackId: string) => {
