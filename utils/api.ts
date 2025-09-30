@@ -11,26 +11,22 @@ export const api = {
       type: "track",
     });
 
-    try {
-      const response = await axios.get(
-        `https://api.spotify.com/v1/search?${searchParams.toString()}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
+    const response = await axios.get(
+      `https://api.spotify.com/v1/search?${searchParams.toString()}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
 
-      if (response.data?.tracks?.items?.length > 0) {
-        for (const track of response.data.tracks.items) {
-          if (api.isArtistMatching(track, artist)) {
-            return track.id;
-          }
+    if (response.data?.tracks?.items?.length > 0) {
+      for (const track of response.data.tracks.items) {
+        if (api.isArtistMatching(track, artist)) {
+          return track.id;
         }
       }
-    } catch (error) {
-      console.error(error);
     }
 
     return null;
@@ -50,19 +46,15 @@ export const api = {
 
   saveTrackToLibrary: async (token: string, trackId: string) => {
     const url = `https://api.spotify.com/v1/me/tracks?ids=${trackId}`;
-    try {
-      await axios.put(
-        url,
-        {},
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
-    } catch (error) {
-      throw error;
-    }
+    await axios.put(
+      url,
+      {},
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
   },
 };
