@@ -4,7 +4,7 @@
 
 - This extension does not collect, store, or transmit any personal user data to any external server.
 - Authentication tokens (`access_token`, `refresh_token`) provided by the Spotify API are the only data handled.
-- These tokens are stored exclusively on the user's local device using the `browser.storage` API.
+- These tokens are stored exclusively on the user's local device using the [browser.storage](https://developer.chrome.com/docs/extensions/reference/api/storage) API.
 
 ## Permissions and Justification
 
