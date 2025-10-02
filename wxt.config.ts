@@ -4,6 +4,9 @@ import { defineConfig } from "wxt";
 export default defineConfig({
   manifest: {
     name: "SomaFM Spotify Track Adder",
+    version: "1.0.0",
+    description:
+      "Add tracks from SomaFM channel's recently played song list to your Spotify library with a single click.",
     permissions: ["identity", "storage"],
     web_accessible_resources: [
       {
@@ -18,7 +21,7 @@ export default defineConfig({
     ],
     browser_specific_settings: {
       gecko: {
-        id: "soma-fm@dev.com",
+        id: "somafm-track-adder@jamisonrobey.com",
       },
     },
   },
