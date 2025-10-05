@@ -6,15 +6,15 @@ export default defineBackground(() => {
       const { artist, song } = message.data;
       (async () => {
         try {
-          const token = await auth.getAccessToken();
-          const trackId = await api.searchForTrack(token, artist, song);
+          const token = await getAccessToken();
+          const trackId = await searchForTrack(token, artist, song);
 
           if (!trackId) {
             sendResponse({ ok: false, error: "Not found" });
             return;
           }
 
-          await api.saveTrackToLibrary(token, trackId);
+          await saveTrackToLibrary(token, trackId);
           sendResponse({ ok: true });
         } catch (error) {
           console.error(error);
