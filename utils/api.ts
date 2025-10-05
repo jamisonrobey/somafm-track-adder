@@ -1,4 +1,5 @@
 import axios from "axios";
+import Fuse, { IFuseOptions } from "fuse.js";
 
 export const searchForTrack = async (
   token: string,
@@ -50,34 +51,12 @@ const searchApi = async (token: string, query: string) => {
         },
       }
     );
-    console.log(response);
-    console.log(response.data?.tracks.items);
     return (response.data?.tracks.items as SpotifyTrack[]) || null;
   } catch (err) {
     console.error("Error executing Spotify search:", err);
     return null;
   }
 };
-
-const artistValidator =
-  (requiredArtists: string[], normalize: (str: string) => string) =>
-  (track: SpotifyTrack) => {
-    const spotifyArtists = track.artists.map((artist) =>
-      normalize(artist.name)
-    );
-    return requiredArtists.every((reqArtist) =>
-      spotifyArtists.some((spotifyArtist) => spotifyArtist.includes(reqArtist))
-    );
-  };
-
-const songValidator =
-  (requiredSongWords: string[], normalize: (str: string) => string) =>
-  (track: SpotifyTrack) => {
-    const spotifySongWords = normalize(track.name).split(/\s+/).filter(Boolean);
-    return requiredSongWords.every((reqWord) =>
-      spotifySongWords.includes(reqWord)
-    );
-  };
 
 export const findBestMatch = (
   tracks: SpotifyTrack[],
@@ -87,46 +66,73 @@ export const findBestMatch = (
   const normalize = (str: string): string => {
     return (
       str
+        .toLowerCase()
+        .trim()
         // https://stackoverflow.com/a/37511463
         .normalize("NFD")
         .replace(/\p{Diacritic}/gu, "")
-        .toLowerCase()
-        .trim()
-        // a lot of artist on somafm have 'the' prefix but not on spotify for whatever reason
-        .replace(/^the\s+/, "")
-        .replace(/[^a-z0-9\s]/g, "")
     );
   };
 
-  const validators = [
-    artistValidator(
-      searchArtist.split(/\s+and\s+|\s+&\s+/i).map(normalize),
-      normalize
+  const searchableTracks = tracks.map((track) => ({
+    ...track,
+    normalizedArtists: track.artists.map((a) =>
+      normalize(a.name)
+        // a lot of artist on somaFM have 'the' prefix and not on spotify for whatever reason
+        .replace(/^the\s+/, "")
     ),
-    songValidator(
-      normalize(searchSong).split(/\s+/).filter(Boolean),
-      normalize
-    ),
-  ];
+    normalizedSong: normalize(track.name),
+  }));
 
-  const matchedTracks = [];
+  const options: IFuseOptions<(typeof searchableTracks)[0]> = {
+    // pareto principle ah
+    keys: [
+      { name: "normalizedArtists", weight: 0.8 },
+      { name: "normalizedSong", weight: 0.2 },
+    ],
+    includeScore: true,
+    threshold: 0.35,
+    minMatchCharLength: 3,
+    ignoreLocation: true,
+  };
 
-  for (const track of tracks) {
-    if (validators.every((validator) => validator(track))) {
-      matchedTracks.push(track);
+  const fuse = new Fuse(searchableTracks, options);
+
+  const results = fuse.search({
+    normalizedArtists: normalize(searchArtist).replace(/^the\s+/, ""),
+    normalizedSong: normalize(searchSong),
+  });
+
+  /* these logs are extremely useful for debugging / tuning search and I don't want to write them out anymore so just leave in and only used in dev */
+  if (results.length === 0) {
+    if (import.meta.env.DEV) {
+      console.log(
+        `No fuzzy match found for "${searchArtist} - ${searchSong}".`
+      );
+      console.log("\tAPI returned:");
+      for (const track of tracks) {
+        console.log(`\t\t- ${track.artists[0].name} - ${track.name}`);
+      }
     }
-  }
-
-  if (matchedTracks.length === 0) {
     return null;
   }
 
-  // take most popular which seems to be reliable
-  if (matchedTracks.length > 1) {
-    matchedTracks.sort((a, b) => b.popularity - a.popularity);
+  if (import.meta.env.DEV) {
+    console.log(`Fuzzy match found for "${searchArtist} - ${searchSong}":`);
+    console.log(
+      `\t- Best Match: '${results[0].item.artists[0].name}' - ${
+        results[0].item.name
+      } | Score: ${results[0].score?.toFixed(4)}`
+    );
+
+    console.log("For given tracks:");
+
+    for (const track of tracks) {
+      console.log(`\t- ${track.artists[0].name} - ${track.name}`);
+    }
   }
 
-  return matchedTracks[0].id;
+  return results[0].item.id;
 };
 
 export const saveTrackToLibrary = async (token: string, trackId: string) => {
