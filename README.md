@@ -1,5 +1,3 @@
-# WIP - Submitted this to Chrome, Firefox and Edge stores and have applied to get the spotify quota off developer mode. The extension links will be updated in coming days once everything is setup.
-
 # SomaFM Spotify Track Adder
 
 A browser extension that adds a button to SomaFM's web player to save tracks to a Spotify library.
@@ -39,3 +37,4 @@ pnpm build
 
 cd build/.output/
 ```
+# WIP - Submitted this to Chrome, Firefox and Edge stores and have applied to get the spotify quota off developer mode. The extension links will be updated in coming days once everything is setup.
