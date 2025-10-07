@@ -1,3 +1,5 @@
+# NVM LOL YOU CAN'T USE SPOTIFY API ANYMORE OUTSIDE OF DEV MODE (25 max users which I have to add manually) unless I have 250k MAUs :). Apple Music could be an option but I don't even use it and it requires a 100 USD feed. Sooo this is abandoned.  
+
 # SomaFM Spotify Track Adder
 
 A browser extension that adds a button to SomaFM's web player to save tracks to a Spotify library.
@@ -9,12 +11,6 @@ A browser extension that adds a button to SomaFM's web player to save tracks to 
 #### Standard Operation
 
 ![Demo of use, icons and tooltips](promo/gifs/icon-tooltips.gif)
-
-## Installation
-
-- [Google Chrome](tmp)
-- [Mozilla Firefox](tmp)
-- [Microsoft Edge](tmp)
 
 ## Privacy
 
@@ -37,4 +33,3 @@ pnpm build
 
 cd build/.output/
 ```
-# WIP - Submitted this to Chrome, Firefox and Edge stores and have applied to get the spotify quota off developer mode. The extension links will be updated in coming days once everything is setup.
